@@ -1,0 +1,122 @@
+[
+  {
+    "id": "S01",
+    "label": "Hypothetical protein-to-cell link A",
+    "from_scale": "molecule",
+    "to_scale": "cell",
+    "uncertainty": 0.9,
+    "consequence": 0.9,
+    "missing_evidence": true,
+    "estimated_cost": 1.2,
+    "evidence_status": "missing",
+    "critical_gap_label": true
+  },
+  {
+    "id": "S02",
+    "label": "Hypothetical cell-to-tissue link B",
+    "from_scale": "cell",
+    "to_scale": "tissue",
+    "uncertainty": 0.65,
+    "consequence": 0.88,
+    "missing_evidence": true,
+    "estimated_cost": 1,
+    "evidence_status": "missing",
+    "critical_gap_label": true
+  },
+  {
+    "id": "S03",
+    "label": "Hypothetical tissue-to-organ link C",
+    "from_scale": "tissue",
+    "to_scale": "organ",
+    "uncertainty": 0.42,
+    "consequence": 0.95,
+    "missing_evidence": false,
+    "estimated_cost": 1.5,
+    "evidence_status": "mixed",
+    "critical_gap_label": true
+  },
+  {
+    "id": "S04",
+    "label": "Hypothetical molecular-to-organ link D",
+    "from_scale": "molecule",
+    "to_scale": "organ",
+    "uncertainty": 0.8,
+    "consequence": 0.7,
+    "missing_evidence": true,
+    "estimated_cost": 2.3,
+    "evidence_status": "missing",
+    "critical_gap_label": true
+  },
+  {
+    "id": "S05",
+    "label": "Hypothetical cell-level link E",
+    "from_scale": "cell",
+    "to_scale": "cell",
+    "uncertainty": 0.9,
+    "consequence": 0.15,
+    "missing_evidence": false,
+    "estimated_cost": 0.6,
+    "evidence_status": "support",
+    "critical_gap_label": false
+  },
+  {
+    "id": "S06",
+    "label": "Hypothetical organ-level link F",
+    "from_scale": "organ",
+    "to_scale": "organ",
+    "uncertainty": 0.75,
+    "consequence": 0.2,
+    "missing_evidence": true,
+    "estimated_cost": 0.8,
+    "evidence_status": "missing",
+    "critical_gap_label": false
+  },
+  {
+    "id": "S07",
+    "label": "Hypothetical molecule-level link G",
+    "from_scale": "molecule",
+    "to_scale": "molecule",
+    "uncertainty": 0.2,
+    "consequence": 0.8,
+    "missing_evidence": false,
+    "estimated_cost": 2.4,
+    "evidence_status": "contradict",
+    "critical_gap_label": false
+  },
+  {
+    "id": "S08",
+    "label": "Hypothetical cell-to-organ link H",
+    "from_scale": "cell",
+    "to_scale": "organ",
+    "uncertainty": 0.62,
+    "consequence": 0.87,
+    "missing_evidence": true,
+    "estimated_cost": 1.6,
+    "evidence_status": "missing",
+    "critical_gap_label": true
+  },
+  {
+    "id": "S09",
+    "label": "Hypothetical tissue-to-organ link I",
+    "from_scale": "tissue",
+    "to_scale": "organ",
+    "uncertainty": 0.12,
+    "consequence": 0.25,
+    "missing_evidence": false,
+    "estimated_cost": 0.6,
+    "evidence_status": "support",
+    "critical_gap_label": false
+  },
+  {
+    "id": "S10",
+    "label": "Hypothetical cell-to-organism link J",
+    "from_scale": "cell",
+    "to_scale": "organism",
+    "uncertainty": 0.55,
+    "consequence": 0.6,
+    "missing_evidence": false,
+    "estimated_cost": 2,
+    "evidence_status": "mixed",
+    "critical_gap_label": false
+  }
+]
