@@ -23,10 +23,10 @@ header{background:#14243b;color:white;padding:25px max(24px,calc((100vw - 1200px
 <section class="kpis"><div class="kpi"><small>Selected to inspect</small><b id="selected">—</b></div><div class="kpi"><small>Cost units used</small><b id="spent">—</b></div><div class="kpi"><small>Verification candidates</small><b id="total">—</b></div></section>
 <div class="layout">
 <section class="panel"><h2>Verification queue</h2><p class="muted">Ranked tasks. A green indicator means the greedy budget selector included the item, not that its biological hypothesis has been verified.</p><div class="scale-track"><div class="stage">Molecule<small>protein / gene</small></div><div class="stage">Cell<small>cell type</small></div><div class="stage">Tissue<small>structure</small></div><div class="stage">Organ<small>functional context</small></div><div class="stage">Organism<small>person</small></div></div><div class="legend"><span><i class="dot missing"></i> Missing</span><span><i class="dot support"></i> Support</span><span><i class="dot contradict"></i> Contradict</span><span><i class="dot mixed"></i> Mixed</span></div><div class="queue" id="queue"></div></section>
-<aside><section class="panel"><h2>Inspect verification task</h2><p class="muted">Transparent input features; scores are hand-designed and not calibrated probabilities.</p><div id="details" class="details">Select a task to inspect.</div></section><section class="panel hrabox"><h2>HRA anatomical reference context</h2><p class="muted" id="hra-status">Checking local HRA import…</p><input type="search" id="node-search" placeholder="Search imported anatomy, cell or biomarker" aria-label="Search anatomical reference nodes" disabled><div id="nodes" class="node-list"></div><p class="muted">Anatomical mappings are not evidence of drug effects or disease causation. They are kept separate from the synthetic verification queue.</p></section></aside>
+<aside><section class="panel"><h2>Inspect verification task</h2><p class="muted">Transparent input features; scores are hand-designed and not calibrated probabilities.</p><div id="details" class="details">Select a task to inspect.</div></section><section class="panel hrabox"><h2>HRA anatomical reference context</h2><p class="muted" id="hra-status">Checking local HRA import…</p><input type="search" id="node-search" placeholder="Search imported anatomy, cell or biomarker" aria-label="Search anatomical reference nodes" disabled><div id="nodes" class="node-list"></div><svg id="hra-graph" viewBox="0 0 360 200" width="100%" role="img" aria-label="Selected HRA reference node and adjacent nodes" style="margin-top:10px;display:none;border:1px solid #dce3eb;border-radius:8px;background:#f8fafc"></svg><div id="hra-neighbors" class="muted" style="margin-top:8px"></div><p class="muted">Anatomical mappings are not evidence of drug effects or disease causation. They are kept separate from the synthetic verification queue.</p></section></aside>
 </div><div class="footer">ScaleVerify is an experimental Human-Centered AI / Visual Analytics research prototype. Source: <a href="https://humanatlas.io/asctb-tables" target="_blank" rel="noopener noreferrer">HRA ASCT+B official portal</a>. All example tasks are synthetic and do not represent actual clinical evidence.</div></main>
 <script>
-const el=id=>document.getElementById(id);let tasks=[],active=null,contextNodes=[];
+const el=id=>document.getElementById(id);let tasks=[],active=null,contextNodes=[],contextEdges=[];
 const words={scaleverify:"ScaleVerify",uncertainty:"Uncertainty-only",evidence_gap:"Evidence-gap-only",random:"Random"};
 function fmt(v){return Number(v).toFixed(2)}
 function t(tag,text,cls){const a=document.createElement(tag);if(text!==undefined)a.textContent=text;if(cls)a.className=cls;return a;}
@@ -39,7 +39,7 @@ async function loadRanks(){
  const head=t('div',undefined,'head');head.append(t('strong',(i+1)+'. '+x.id+': '+x.label),t('span',x.evidence_status,'status'));b.append(head);
  b.append(t('div',x.from_scale+' → '+x.to_scale+' · '+fmt(x.estimated_cost)+' cost units','sub'));
  b.append(t('div',x.selected_under_budget?'● Included in budget':'○ Not selected',x.selected_under_budget?'chosen':'notchosen'));
- const bar=t('div',undefined,'bar');const inner=t('span');inner.style.width=Math.min(100,x.heuristic_score*100)+'%';bar.append(inner);b.append(bar);
+ if(method==='scaleverify'){const bar=t('div',undefined,'bar');const inner=t('span');inner.style.width=Math.min(100,x.heuristic_score*100)+'%';bar.append(inner);b.append(bar);}
  b.addEventListener('click',()=>{active=x.id;renderDetails(x);loadRanks()});queue.append(b);});
  const current=tasks.find(x=>x.id===active)||tasks[0];if(current){active=current.id;renderDetails(current);queue.querySelectorAll('button').forEach((b,i)=>b.classList.toggle('active',tasks[i].id===active));}
  }catch(err){el('queue').textContent='Could not load tasks. Start the server with python scripts/serve_demo.py';}
@@ -49,7 +49,32 @@ function renderDetails(x){const d=el('details');d.replaceChildren();d.append(t('
  pairs.forEach(([k,v])=>{const box=t('div');box.append(t('dt',k),t('dd',v));dl.append(box)});d.append(dl);
  d.append(t('p','ScaleVerify heuristic score: '+fmt(x.heuristic_score)+'. This is a heuristic, not a probability or experimentally validated efficacy estimate.','reason'));
 }
-function renderNodes(){const q=el('node-search').value.toLowerCase();const list=el('nodes');list.replaceChildren();const matches=contextNodes.filter(x=>x.label.toLowerCase().includes(q)).slice(0,35);matches.forEach(x=>list.append(t('span',x.label,'node')));if(!matches.length)list.append(t('span','No matching reference labels','muted'));}
-async function loadHRA(){try{const r=await fetch('/api/context');const data=await r.json();if(data.available){const m=data.context.metadata;el('hra-status').textContent='Imported HRA '+m.organ+' ('+m.release+'); '+m.node_count+' nodes and '+m.edge_count+' anatomical-reference links. Verified source file SHA-256 recorded.';contextNodes=data.context.nodes;el('node-search').disabled=false;renderNodes();}else{el('hra-status').textContent='Not yet imported: download the official heart ASCT+B CSV, then run scripts/import_hra.py. No real HRA data is loaded.';}}catch(e){el('hra-status').textContent='HRA context is unavailable.'}}
+function renderNodes(){
+ const q=el('node-search').value.toLowerCase(),list=el('nodes');list.replaceChildren();
+ const matches=contextNodes.filter(x=>x.label.toLowerCase().includes(q)).slice(0,35);
+ matches.forEach(x=>{const b=t('button',x.label,'node');b.style.border='0';b.style.cursor='pointer';b.addEventListener('click',()=>drawHRA(x));list.append(b)});
+ if(!matches.length)list.append(t('span','No matching reference labels','muted'));
+}
+function drawHRA(node){
+ const svg=el('hra-graph');svg.style.display='block';svg.replaceChildren();
+ const title=el('hra-neighbors');title.replaceChildren();
+ const incident=contextEdges.filter(e=>e.source===node.id||e.target===node.id),byId=new Map(contextNodes.map(n=>[n.id,n]));
+ const neighbors=incident.slice(0,7);
+ const ns='http://www.w3.org/2000/svg';
+ const make=(tag,attrs,text)=>{const e=document.createElementNS(ns,tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));if(text!==undefined)e.textContent=text;svg.append(e);return e};
+ neighbors.forEach((edge,i)=>{const a=2*Math.PI*i/Math.max(neighbors.length,1)-Math.PI/2,x=180+124*Math.cos(a),y=100+65*Math.sin(a);
+ make('line',{x1:180,y1:100,x2:x,y2:y,stroke:'#9aabc1','stroke-width':1.5});
+ make('circle',{cx:x,cy:y,r:18,fill:'#dee9f9',stroke:'#7294c8'});
+ const other=byId.get(edge.source===node.id?edge.target:edge.source),label=(other?.label||'Unknown').slice(0,17);
+ make('text',{x,y:y+29,'text-anchor':'middle','font-size':9,fill:'#38516f'},label);
+ });
+ make('circle',{cx:180,cy:100,r:30,fill:'#326ada'});
+ make('text',{x:180,y:104,'text-anchor':'middle','font-size':11,'font-weight':700,fill:'#fff'},node.kind==='cell_type'?'CELL':node.kind==='anatomical_structure'?'ANATOMY':'MARKER');
+ title.append(t('strong',node.label+' · '+incident.length+' reference links'));
+ incident.slice(0,5).forEach(e=>{const other=byId.get(e.source===node.id?e.target:e.source);title.append(t('div',(e.relation)+' → '+(other?.label||'Unknown')+' (source row '+e.source_rows.join(',')+')'))});
+ if(incident.length>7)title.append(t('div','Only first 7 neighbor nodes shown. Reference links do not prove causality.'));
+}
+
+async function loadHRA(){try{const r=await fetch('/api/context');const data=await r.json();if(data.available){const m=data.context.metadata;el('hra-status').textContent='Imported HRA '+m.organ+' ('+m.release+'); '+m.node_count+' nodes and '+m.edge_count+' anatomical-reference links. Verified source file SHA-256 recorded.';contextNodes=data.context.nodes;contextEdges=data.context.edges;el('node-search').disabled=false;renderNodes();}else{el('hra-status').textContent='Not yet imported: download the official heart ASCT+B CSV, then run scripts/import_hra.py. No real HRA data is loaded.';}}catch(e){el('hra-status').textContent='HRA context is unavailable.'}}
 el('method').addEventListener('change',loadRanks);el('budget').addEventListener('input',loadRanks);el('node-search').addEventListener('input',renderNodes);loadRanks();loadHRA();
 </script></body></html>
