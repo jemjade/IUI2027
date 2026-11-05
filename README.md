@@ -51,6 +51,8 @@ The HRA section of the interface will remain visibly unavailable until a real CS
 - [Data and annotation protocol](docs/DATA_PROTOCOL.md)
 - [Prior literature](docs/LITERATURE.md)
 - [IUI Poster outline](docs/POSTER_OUTLINE.md)
+- [Working poster manuscript](docs/POSTER_DRAFT.md)
+- [Synthetic-only results and negative ablation finding](docs/SYNTHETIC_RESULTS.md)
 - `src/scaleverify/core.py`: heuristic ranking and budget selection
 - `src/scaleverify/benchmark.py`: budget sweep, random-seed checks and scale ablation
 - `src/scaleverify/hra.py`: ASCT+B CSV to provenance-labelled anatomical reference graph
